@@ -1,9 +1,8 @@
-const mongoose = require("mongoose");
-const { boolean } = require("webidl-conversions");
-const Schema = mongoose.Schema;
+import mongoose from "mongoose";
+// const { boolean } = require("webidl-conversions");
 // const bcrypt = require("bcrypt");
 // const jwt = require("jsonwebtoken");
-const userSchema = new Schema({
+const userSchema = new mongoose.Schema({
   // email: {
   //   type: String,
   //   required: true,
@@ -25,16 +24,12 @@ const userSchema = new Schema({
   },
   phone: {
     type: String,
+    unique: true,
     required: true,
   },
-  PNR: {
-    type: String,
-    required: true,
-  },
-
   // gender: {
   //   type: String,
-  //   enum: ["Male", "Female"],
+  //   enum: ["Male", "Female", ""],
   //   required: true,
   // },
   // isDeteted: {

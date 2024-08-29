@@ -18,7 +18,7 @@ export const ComplaintController = async (req: Request, res: Response) => {
     if (!phone || !description || !pnr) {
       return res.status(400).send("All fields are required");
     }
-
+    console.log("user is ",req.session?.user);
     if(!req.file){
       return res.status(400).send("Image is also required");
     }

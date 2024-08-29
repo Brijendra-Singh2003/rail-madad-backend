@@ -49,6 +49,7 @@ export async function signup(req: Request, res: Response<{ success: boolean; mes
 
   // store user in cookies
   if (req.session) {
+    console.log("user ka session store hua");
     req.session.user = user;
   } else {
     throw new Error("session not initialized");

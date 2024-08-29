@@ -6,7 +6,7 @@ const ComplaintSchema = new Schema({
     type: String,
     required: true,
   },
-  discription: {
+  description: {
     type: String,
     required: true,
   },
@@ -14,6 +14,10 @@ const ComplaintSchema = new Schema({
     type: String,
     required: true,
   },
+  // image_delete_hash:{
+  //   type: String,
+  //   required: true,
+  // },
   pnr: {
     type: String,
     required: true,

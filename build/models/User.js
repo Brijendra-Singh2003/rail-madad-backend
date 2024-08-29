@@ -1,11 +1,13 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const mongoose = require("mongoose");
-const { boolean } = require("webidl-conversions");
-const Schema = mongoose.Schema;
+const mongoose_1 = __importDefault(require("mongoose"));
+// const { boolean } = require("webidl-conversions");
 // const bcrypt = require("bcrypt");
 // const jwt = require("jsonwebtoken");
-const userSchema = new Schema({
+const userSchema = new mongoose_1.default.Schema({
     // email: {
     //   type: String,
     //   required: true,
@@ -27,15 +29,12 @@ const userSchema = new Schema({
     },
     phone: {
         type: String,
-        required: true,
-    },
-    PNR: {
-        type: String,
+        unique: true,
         required: true,
     },
     // gender: {
     //   type: String,
-    //   enum: ["Male", "Female"],
+    //   enum: ["Male", "Female", ""],
     //   required: true,
     // },
     // isDeteted: {
@@ -75,5 +74,5 @@ const userSchema = new Schema({
 //     expiresIn: process.env.JWT_EXPIRE * 24 * 60 * 60 * 1000,
 //   });
 // };
-const User = mongoose.model("User", userSchema);
+const User = mongoose_1.default.model("User", userSchema);
 exports.default = User;

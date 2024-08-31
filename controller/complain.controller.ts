@@ -11,14 +11,14 @@ const upload = multer({ storage });
 export const ComplaintController = async (req: Request, res: Response) => {
   try {
     console.log(req.body);
-    const { phone, description, pnr } = req.body;
-    console.log("phone", phone);
+    const {  description, pnr } = req.body;
+    // console.log("phone", phone);
     console.log(req.file); // Access the uploaded file via req.file
-
-    if (!phone || !description || !pnr) {
+    const phone = req.session?.user?.phone;
+    if ( !description || !pnr) {
       return res.status(400).send("All fields are required");
     }
-
+    console.log("user is ",req.session?.user);
     if(!req.file){
       return res.status(400).send("Image is also required");
     }

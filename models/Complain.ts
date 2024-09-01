@@ -14,6 +14,32 @@ const ComplaintSchema = new Schema({
     type: String,
     required: true,
   },
+  category: {
+    type: String,
+    required: true,
+  },
+  subcategory: {
+    type: String,
+    required: true,
+  },
+  severity: {
+    type: String,
+    enum: ["low", "medium", "high"],
+    required: true,
+  },
+  conversations: {
+    type: [{
+      role: {
+        type: String,
+        enum: ["user", "model"],
+        required: true
+      },
+      message: {
+        type: String,
+        required: true,
+      },
+    }],
+  },
   // image_delete_hash:{
   //   type: String,
   //   required: true,

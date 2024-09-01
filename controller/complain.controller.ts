@@ -2,7 +2,7 @@ import "dotenv/config";
 import Complain from '../models/Complain';
 import { Request, Response } from "express";
 import multer from "multer";
-import {bucket} from "../configurations/firebaseConfig";
+import { bucket } from "../configurations/firebaseConfig";
 import { promise } from "zod";
 
 const storage = multer.memoryStorage();
@@ -11,18 +11,20 @@ const upload = multer({ storage });
 export const ComplaintController = async (req: Request, res: Response) => {
   try {
     console.log(req.body);
-    const {  description, pnr } = req.body;
-    // console.log("phone", phone);
     console.log(req.file); // Access the uploaded file via req.file
-    const phone = req.session?.user?.phone;
-    if ( !description || !pnr) {
+    console.log("user", req.session?.user);
+
+    const { description, pnr } = req.body;
+    const phone = req.session?.user.phone;
+
+    if (!description || !pnr) {
       return res.status(400).send("All fields are required");
     }
-    console.log("user is ",req.session?.user);
-    if(!req.file){
-      return res.status(400).send("Image is also required");
+
+    if (!req.file) {
+      return res.status(400).send("Image is required");
     }
-    let imageUrl=""
+
     const file = req.file;
     const fileName = `complaints/${Date.now()}_${file.originalname}`;
     const fileUpload = bucket.file(fileName);
@@ -31,30 +33,70 @@ export const ComplaintController = async (req: Request, res: Response) => {
         contentType: file.mimetype,
       },
     });
-    
+
     blobStream.on('error', (err) => {
       console.error('Error uploading file:', err);
       return res.status(500).json({ message: "Something went wrong uploading the file" });
     });
 
-    await new Promise<void>((resolve,reject)=>{
+    const image_url = await new Promise<string>((resolve, reject) => {
       blobStream.on('finish', () => {
-        imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(fileName)}?alt=media`;
-        resolve();
+        resolve(`https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(fileName)}?alt=media`);
       });
       blobStream.end(file.buffer);
     });
 
-    
 
-    const complaint = new Complain({ phone, description, pnr,image_url:imageUrl });
+
+    // const formData = new FormData();
+
+    // formData.append("description", description);
+    // formData.append("file", new Blob([file.buffer], { type: file.mimetype }), file.originalname);
+
+    // const response = await fetch("http://localhost:8000/analyze-grievance/", {
+    //   method: "POST",
+    //   body: formData
+    // });
+
+    // if(response.ok) {
+    // const data = await response.json();
+    const data = AiResponse;
+
+    const complaint = new Complain({
+      phone,
+      pnr,
+      image_url,
+      description,
+      category: data.category,
+      subcategory: data.subcategory,
+      severity: data.severity,
+    });
+
+    complaint.conversations.push({
+      role: "user",
+      message: description,
+    });
+    complaint.conversations.push({
+      role: "model",
+      message: data.preliminary_response,
+    });
+
     await complaint.save();
 
+    return res.status(201).send({
+      success: true,
+      message: "Complaint registered successfully",
+      complaintId: complaint.id,
+    });
+    // }
+
+    //   console.log(await response.text());
     res.status(201).send({
       success: true,
       message: "Complaint registered successfully",
-      complaint,
+      // complaint,
     });
+
   } catch (error: any) {
     console.error("Error during registration:", error.message);
     res.status(500).send({
@@ -62,5 +104,62 @@ export const ComplaintController = async (req: Request, res: Response) => {
       message: 'Error in registration',
       error: error.message,
     });
+  }
+};
+
+
+const AiResponse = {
+  category: 'coach-cleanliness',
+  subcategory: 'Others',
+  severity: 'high',
+  preliminary_response: 'Thank you for bringing this to our attention. We understand the importance of cleanliness and will send a cleaning crew immediately to address the issue.',
+  metadata: {
+    data: {
+      BlueMatrixColumn: '0.14307 0.06061 0.7141',
+      BlueTRC: '(Binary data 40 bytes, use -b option to extract)',
+      CMMFlags: 'Not Embedded, Independent',
+      ColorSpaceData: 'RGB ',
+      ConnectionSpaceIlluminant: '0.9642 1 0.82491',
+      DeviceAttributes: 'Reflective, Glossy, Positive, Color',
+      DeviceManufacturer: '',
+      DeviceModel: '',
+      Directory: '.',
+      ExifToolVersion: 12.57,
+      FileAccessDate: '2024:08:31 15:08:14+00:00',
+      FileInodeChangeDate: '2024:08:31 15:08:14+00:00',
+      FileModifyDate: '2024:08:31 15:08:14+00:00',
+      FileName: '',
+      FilePermissions: '-rw-r--r--',
+      FileSize: '46 kB',
+      FileType: 'Extended WEBP',
+      FileTypeExtension: 'webp',
+      GreenMatrixColumn: '0.38515 0.71687 0.09708',
+      GreenTRC: '(Binary data 40 bytes, use -b option to extract)',
+      HorizontalScale: 0,
+      ImageHeight: 320,
+      ImageSize: '320x320',
+      ImageWidth: 320,
+      MIMEType: 'image/webp',
+      MediaWhitePoint: '0.9642 1 0.82491',
+      Megapixels: 0.102,
+      PrimaryPlatform: 'Unknown ()',
+      ProfileCMMType: '',
+      ProfileClass: 'Display Device Profile',
+      ProfileConnectionSpace: 'XYZ ',
+      ProfileCopyright: 'Google Inc. 2016',
+      ProfileCreator: '',
+      ProfileDateTime: '2016:01:01 00:00:00',
+      ProfileDescription: 'sRGB',
+      ProfileFileSignature: 'acsp',
+      ProfileID: 0,
+      ProfileVersion: '4.3.0',
+      RedMatrixColumn: '0.43607 0.22249 0.01392',
+      RedTRC: '(Binary data 40 bytes, use -b option to extract)',
+      RenderingIntent: 'Media-Relative Colorimetric',
+      SourceFile: '',
+      VP8Version: '0 (bicubic reconstruction, normal loop)',
+      VerticalScale: 0,
+      WebP_Flags: 'ICC Profile'
+    }
   }
 };

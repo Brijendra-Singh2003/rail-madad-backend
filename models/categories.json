@@ -1,0 +1,84 @@
+{
+    "medical Assisance": [
+        "medical assistance"
+    ],
+    "Security": [
+        "Eve-Teasing/Misbehaviour with lady passengers/Rape",
+        "Theft of Passengers Belongings/Snatching",
+        "Unauthorized person in Ladies/Disabled Coach/SLR/Reserve Coach",
+        "Harrasment/Extortion by security Personal/Railway personnel",
+        "Nuisance by Hawkers/Beggar/Eunuch",
+        "Luggage Left Behind/Unclaimed/Suspected Articles",
+        "Passenger Missing/Not Responding call",
+        "Smoking/Drinking Alcohol/Narcotics",
+        "Dacoity/Robbery/Murder/Riots",
+        "Quarrelling/Hooliganism",
+        "Passenger fallen down",
+        "Nuisance by Passenger",
+        "Misbehaviour",
+        "Others"
+    ],
+    "Handicapped Facilities": [
+        "Handicapped Coach Facilities",
+        "Handicapped toilet/washbasin",
+        "Braille signage in coach",
+        "Others"
+    ],
+    "Facilities for Women with Special needs": [
+        "Baby Food"
+    ],
+    "Electrical Equipment": [
+        "Air Conditioner",
+        "Fans",
+        "Lights",
+        "Charging Points",
+        "Others"
+    ],
+    "coach-cleanliness": [
+        "Toilet",
+        "Washbasin",
+        "Cockroach/Rodents",
+        "Coach Interior",
+        "Coach Exterior",
+        "Others"
+    ],
+    "Punctuality": [
+        "NTES APP",
+        "Late Running",
+        "Others"
+    ],
+    "Water Availability": [
+        "Packaged Drinking Water/Rail Neer",
+        "Toilet",
+        "Washbasin",
+        "Others"
+    ],
+    "coach-maintenance": [
+        "window/seat broken",
+        "window/door locking problem",
+        "tap leaking/tap not working problem",
+        "broken/missing toilet fittings",
+        "jerks/abnormal sounds",
+        "other"
+    ],
+    "Catering & Vending Services": [
+        "Overcharging",
+        "Service Quality & Hygiene",
+        "Food Quality & Quantity",
+        "E-Catering",
+        "Food & Water Not Available",
+        "Others"
+    ],
+    "staff behavior": [
+        "Staff Behaviour"
+    ],
+    "Corruption/Bribery": [
+        "Corruption/Bribery"
+    ],
+    "Bed Roll": [
+        "Dirty/Torn",
+        "Overcharging",
+        "Non Availability",
+        "Others"
+    ]
+}

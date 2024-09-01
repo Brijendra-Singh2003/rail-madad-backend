@@ -3,7 +3,8 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cookieSession from "cookie-session";
 import cors, { CorsOptions } from "cors";
-import path from "path";
+import http from "http";
+import { WebSocketServer } from "ws";
 
 import connectDB from "./configurations/db";
 import AuthRouter from "./routes/auth";
@@ -11,6 +12,7 @@ import Userrouter from "./routes/user";
 import Complainrouter from "./routes/complaint";
 
 import formidable from 'formidable';
+import createChatWSS from "./gemini";
 
 
 const app = express();
@@ -55,10 +57,15 @@ app.get("/hi", (req, res) => {
 //   res.sendFile(path.join(__dirname, "../..", "/frontend/build/index.html"));
 // });
 
+const server = http.createServer(app);
+const wss = new WebSocketServer({server});
+
+createChatWSS(wss);
+
 async function main() {
   await connectDB(); // await database connection before listening to incoming requests
 
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Your backend is running at http://localhost:${PORT}`);
   });
 }

@@ -1,5 +1,5 @@
 import express from "express";
-import { ComplaintController } from "../controller/complain.controller";
+import { ComplaintController, getAllComplaints, getComplaintCount } from "../controller/complain.controller";
 import multer from "multer";
 import { isAuthenticated } from "../middlewares/auth";
 import Complain from "../models/Complain";
@@ -11,11 +11,14 @@ const complaintRouter = express.Router();
 
 
 complaintRouter.post("/done", isAuthenticated, upload.single('image'), ComplaintController);
+complaintRouter.get("/count", getComplaintCount);
+complaintRouter.get("/all", getAllComplaints);
 complaintRouter.get("/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const complaint = await Complain.findById(id);
+        console.log({id});
 
+        const complaint = await Complain.findById(id);
         console.log({complaint});
 
         res.json({

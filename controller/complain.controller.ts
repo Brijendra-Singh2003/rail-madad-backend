@@ -63,6 +63,7 @@ export const ComplaintController = async (req: Request, res: Response) => {
     const data = AiResponse;
 
     const complaint = new Complain({
+      user: req.session?.user._id,
       phone,
       pnr,
       image_url,

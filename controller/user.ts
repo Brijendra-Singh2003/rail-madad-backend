@@ -23,3 +23,26 @@ export const registerControler = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+export async function getAllUsers(req: Request, res: Response) {
+  const users = await User.aggregate([
+    {
+      $lookup: {
+        from: "complains", // The collection name for complaints
+        localField: "_id",
+        foreignField: "user",
+        as: "complaints",
+      },
+    },
+    {
+      $project: {
+        firstName: 1,
+        lastName: 1,
+        phone: 1,
+        complaints: { $size: "$complaints" },
+      },
+    },
+  ]);
+
+  return res.json({success: true, data: users});
+}

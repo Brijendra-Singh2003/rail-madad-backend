@@ -3,6 +3,7 @@ import { ComplaintController } from "../controller/complain.controller";
 import multer from "multer";
 import { isAuthenticated } from "../middlewares/auth";
 import Complain from "../models/Complain";
+import { getAllComplaints } from "../controller/admin.controller";
 
 const storage = multer.memoryStorage();
 
@@ -10,7 +11,9 @@ const upload = multer({ storage });
 const complaintRouter = express.Router();
 
 
+complaintRouter.get("/getAllComplaints",getAllComplaints);
 complaintRouter.post("/done", isAuthenticated, upload.single('image'), ComplaintController);
+// isko sabse last me rakhna
 complaintRouter.get("/:id", async (req, res) => {
     try {
         const id = req.params.id;

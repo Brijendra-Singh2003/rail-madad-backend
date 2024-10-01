@@ -63,6 +63,7 @@ export const ComplaintController = async (req: Request, res: Response) => {
     const data = AiResponse;
 
     const complaint = new Complain({
+      user: req.session?.user._id,
       phone,
       pnr,
       image_url,
@@ -106,6 +107,31 @@ export const ComplaintController = async (req: Request, res: Response) => {
     });
   }
 };
+
+export async function getComplaintCount(req: Request, res: Response) {
+  try {
+    const [count, pending] = await Promise.all([
+      Complain.countDocuments({}),
+      Complain.countDocuments({ status: "pending" })
+    ]);
+
+    const data = {
+      success: true,
+      count,
+      pending,
+    };
+
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error", error });
+  }
+}
+
+export async function getAllComplaints(req: Request, res: Response) {
+  const complaints = await Complain.find();
+
+  return res.json({ success: true, data: complaints});
+}
 
 
 const AiResponse = {

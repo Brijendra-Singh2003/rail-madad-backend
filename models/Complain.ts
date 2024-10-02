@@ -50,15 +50,11 @@ const ComplaintSchema = new Schema({
     default: "pending",
     enum: ["pending", "resolved", "rejected", "in-progress"],  // aur jo v ho skta h.
   },
-  // image_delete_hash:{
-  //   type: String,
-  //   required: true,
-  // },
   pnr: {
     type: String,
     required: true,
   },
-});
+}, { timestamps: true });
 
 // Export the model
 const Complain = mongoose.model("Complain", ComplaintSchema);

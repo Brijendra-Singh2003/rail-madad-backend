@@ -127,10 +127,42 @@ export async function getComplaintCount(req: Request, res: Response) {
   }
 }
 
-export async function getAllComplaints(req: Request, res: Response) {
-  const complaints = await Complain.find();
+export async function getMyComplaints(req: Request, res: Response) {
+  const user = req.session?.user._id;
+  const complaints = await Complain.find({ user })
+    .select({
+      image_url: true,
+      description: true,
+      status: true,
+      pnr: true,
+      createdAt: true,
+      updatedAt: true,
+    });
 
-  return res.json({ success: true, data: complaints});
+  return res.json({ success: true, data: complaints });
+}
+
+export const getComplaintById = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    console.log("get complaints by id", { id });
+
+    const complaint = await Complain.findById(id);
+    console.log({ complaint });
+
+    res.json({
+      success: true,
+      data: complaint?.conversations ?? [],
+    });
+  }
+  catch (err: any) {
+    console.log(err);
+
+    res.json({
+      success: false,
+      message: err.message,
+    });
+  }
 }
 
 

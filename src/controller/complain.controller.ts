@@ -152,7 +152,7 @@ export const getComplaintById = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: complaint?.conversations ?? [],
+      data: complaint,
     });
   }
   catch (err: any) {

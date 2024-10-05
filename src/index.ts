@@ -44,16 +44,13 @@ app.use("/api/complaints", Complainrouter);
 
 
 
-app.get("/", (req, res) => {
-  console.log(req.session);
-  console.log("hello");
-  res.json("hi");
+app.get("/", (_, res) => {
+  res.send("hello world");
 });
 
 const server = http.createServer(app);
-const wss = new WebSocketServer({server});
 
-createChatWSS(wss);
+createChatWSS(new WebSocketServer({server}));
 
 async function main() {
   await connectDB();

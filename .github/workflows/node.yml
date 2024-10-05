@@ -38,7 +38,6 @@ jobs:
             push: true
             tags: |
                 brijendrasingh0369/rail-madad-backend:latest
-                brijendrasingh0369/rail-madad-backend:${{ env.COMMIT_HASH }}
 
       - name: Log out from Docker Hub
         run: docker logout

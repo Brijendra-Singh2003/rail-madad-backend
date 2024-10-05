@@ -45,7 +45,7 @@ app.use("/api/complaints", Complainrouter);
 
 
 app.get("/", (_, res) => {
-  res.json({ success: true, message: "hello world" });
+  res.json({ success: true, message: "hello from server" });
 });
 
 const server = http.createServer(app);

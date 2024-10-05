@@ -6,10 +6,11 @@ COPY package.json ./
 RUN npm install
 
 COPY tsconfig.json ./
-COPY build/ build/
+COPY src/ src/
+RUN npm run build
 
 USER node
 
 CMD [ "npm", "start" ]
 
-EXPOSE 80
+EXPOSE 8800

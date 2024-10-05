@@ -6,8 +6,7 @@ COPY package.json ./
 RUN npm install
 
 COPY tsconfig.json ./
-COPY src/ src/
-RUN npm run build
+COPY build/ build/
 
 USER node
 

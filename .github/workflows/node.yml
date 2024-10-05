@@ -36,7 +36,9 @@ jobs:
         with:
             context: .
             push: true
-            tags: brijendrasingh0369/rail-madad-backend:latest
+            tags: |
+              brijendrasingh0369/rail-madad-backend:latest
+              brijendrasingh0369/rail-madad-backend:action
 
       - name: Log out from Docker Hub
         run: docker logout

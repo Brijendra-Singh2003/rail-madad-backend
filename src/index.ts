@@ -12,6 +12,7 @@ import Userrouter from "./routes/user";
 import Complainrouter from "./routes/complaint";
 
 import createChatWSS from "./gemini";
+import { logger } from "./middlewares/logger";
 
 
 const app = express();
@@ -36,6 +37,7 @@ app.use(cookieSession({
   maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
 }));
 app.use(cookieParser());
+app.use(logger);
 
 // Routes
 app.use("/api/auth", AuthRouter);

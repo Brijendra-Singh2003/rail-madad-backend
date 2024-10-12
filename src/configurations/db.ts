@@ -1,18 +1,16 @@
 import mongoose from "mongoose";
-import "dotenv/config";
+
+const DATABASEURL = process.env.DATABASE_URL as string;
 
 const connectDB = async () => {
-  console.log(process.env.DATABASE_URL);
-
-  const DATABASEURL = process.env.DATABASE_URL || "mongodb://localhost:27017/";
+  console.log("connecting to db...");
   try {
     await mongoose.connect(DATABASEURL);
-
-    console.log("Database connected ✌");
   } catch (error: any) {
     console.error("Database connection failed:", error.message);
     process.exit(1);
   }
+  console.log("Database connected ✌");
 };
 
 export default connectDB;

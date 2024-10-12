@@ -1,17 +1,16 @@
 import "dotenv/config";
+import http from "http";
 import express from "express";
+import { WebSocketServer } from "ws";
 import cookieParser from "cookie-parser";
 import cookieSession from "cookie-session";
 import cors, { CorsOptions } from "cors";
-import http from "http";
-import { WebSocketServer } from "ws";
 
 import connectDB from "./configurations/db";
 import AuthRouter from "./routes/auth";
 import Userrouter from "./routes/user";
 import Complainrouter from "./routes/complaint";
 
-import formidable from 'formidable';
 import createChatWSS from "./gemini";
 
 const app = express();
@@ -29,20 +28,23 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieSession({
   name: 'session',
-  keys: [AUTH_SECRET], // Replace with your secret
+  keys: [AUTH_SECRET],
 
   // Cookie Options
   maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
 }));
 app.use(cookieParser());
+app.use(logger);
+
 // Routes
 app.use("/api/auth", AuthRouter);
 app.use("/api/user", Userrouter);
 app.use("/api/complaints", Complainrouter);
-app.get("/hi", (req, res) => {
-  console.log(req.session);
-  console.log("hello");
-  res.json("hi");
+
+
+
+app.get("/", (_, res) => {
+  res.json({ success: true, message: "hello from server" });
 });
 // app.use(express.static(path.join(__dirname, "../..", "/frontend/build")));
 // app.get("*", (req, res) => {
@@ -50,12 +52,11 @@ app.get("/hi", (req, res) => {
 // });
 
 const server = http.createServer(app);
-const wss = new WebSocketServer({server});
 
-createChatWSS(wss);
+createChatWSS(new WebSocketServer({ server }));
 
 async function main() {
-  await connectDB(); // await database connection before listening to incoming requests
+  await connectDB();
 
   server.listen(PORT, () => {
     console.log(`Your backend is running at http://localhost:${PORT}`);

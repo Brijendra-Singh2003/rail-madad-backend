@@ -6,5 +6,3 @@
 .env.local
 # /configurations/ServiceAccount.json
 /configurations/ServiceAccount.json
-
-index.ts

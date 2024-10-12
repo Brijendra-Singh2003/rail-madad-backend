@@ -5,8 +5,8 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "start": "nodemon ./build/index.js",
-    "deploy": "node ./build/index.js"
+    "dev": "nodemon ./build/index.js",
+    "start": "node ./build/index.js"
   },
   "keywords": [],
   "author": "",

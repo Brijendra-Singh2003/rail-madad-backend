@@ -133,6 +133,42 @@ export async function getAllComplaints(req: Request, res: Response) {
   return res.json({ success: true, data: complaints});
 }
 
+export async function getComplaintBYId(req: Request, res: Response) {
+  const { id } = req.params; // Extract the id from req.params
+  console.log("id is", id);
+
+  if (!id) {
+    console.log('No complaint ID received');
+    return res.status(400).send({
+      success: false,
+      message: "No complaint ID provided",
+    });
+  }
+
+  try {
+    const complaint = await Complain.findById(id); // Pass only the id to findById
+    console.log("complaint is", complaint);
+
+    if (complaint) {
+      return res.status(200).send({
+        success: true,
+        data: complaint,
+      });
+    } else {
+      return res.status(404).send({
+        success: false,
+        message: "Complaint not found",
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching complaint:", error);
+    return res.status(500).send({
+      success: false,
+      message: "Error fetching complaint",
+    });
+  }
+}
+
 
 const AiResponse = {
   category: 'coach-cleanliness',

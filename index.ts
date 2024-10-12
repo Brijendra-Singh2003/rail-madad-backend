@@ -14,7 +14,6 @@ import Complainrouter from "./routes/complaint";
 import formidable from 'formidable';
 import createChatWSS from "./gemini";
 
-
 const app = express();
 const PORT = process.env.PORT || 8800;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
@@ -25,7 +24,6 @@ const corsOptions: CorsOptions = {
   origin: FRONTEND_URL,
   credentials: true,
 };
-
 // Middlewares
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -37,22 +35,16 @@ app.use(cookieSession({
   maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
 }));
 app.use(cookieParser());
-
 // Routes
 app.use("/api/auth", AuthRouter);
 app.use("/api/user", Userrouter);
 app.use("/api/complaints", Complainrouter);
-
-
-
 app.get("/hi", (req, res) => {
   console.log(req.session);
   console.log("hello");
   res.json("hi");
 });
-
 // app.use(express.static(path.join(__dirname, "../..", "/frontend/build")));
-
 // app.get("*", (req, res) => {
 //   res.sendFile(path.join(__dirname, "../..", "/frontend/build/index.html"));
 // });
@@ -69,5 +61,4 @@ async function main() {
     console.log(`Your backend is running at http://localhost:${PORT}`);
   });
 }
-
 main();

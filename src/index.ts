@@ -12,6 +12,7 @@ import Userrouter from "./routes/user";
 import Complainrouter from "./routes/complaint";
 
 import createChatWSS from "./gemini";
+import { logger } from "./middlewares/logger";
 
 const app = express();
 const PORT = process.env.PORT || 8800;

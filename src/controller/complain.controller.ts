@@ -10,9 +10,9 @@ const upload = multer({ storage });
 
 export const ComplaintController = async (req: Request, res: Response) => {
   try {
-    console.log(req.body);
-    console.log(req.file); // Access the uploaded file via req.file
-    console.log("user", req.session?.user);
+    // console.log(req.body);
+    // console.log(req.file); // Access the uploaded file via req.file
+    // console.log("user", req.session?.user);
 
     const { description, pnr } = req.body;
     const phone = req.session?.user.phone;
@@ -145,10 +145,10 @@ export async function getMyComplaints(req: Request, res: Response) {
 export const getComplaintById = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
-    console.log("get complaints by id", { id });
+    // console.log("get complaints by id", { id });
 
     const complaint = await Complain.findById(id);
-    console.log({ complaint });
+    // console.log({ complaint });
 
     res.json({
       success: true,
@@ -156,7 +156,7 @@ export const getComplaintById = async (req: Request, res: Response) => {
     });
   }
   catch (err: any) {
-    console.log(err);
+    console.error(err);
 
     res.json({
       success: false,
@@ -167,10 +167,10 @@ export const getComplaintById = async (req: Request, res: Response) => {
 
 export async function getComplaintBYId(req: Request, res: Response) {
   const { id } = req.params; // Extract the id from req.params
-  console.log("id is", id);
+  // console.log("id is", id);
 
   if (!id) {
-    console.log('No complaint ID received');
+    console.error('No complaint ID received');
     return res.status(400).send({
       success: false,
       message: "No complaint ID provided",
@@ -179,7 +179,7 @@ export async function getComplaintBYId(req: Request, res: Response) {
 
   try {
     const complaint = await Complain.findById(id); // Pass only the id to findById
-    console.log("complaint is", complaint);
+    // console.log("complaint is", complaint);
 
     if (complaint) {
       return res.status(200).send({

@@ -10,9 +10,9 @@ const upload = multer({ storage });
 
 export const ComplaintController = async (req: Request, res: Response) => {
   try {
-    console.log(req.body);
-    console.log(req.file); // Access the uploaded file via req.file
-    console.log("user", req.session?.user);
+    // console.log(req.body);
+    // console.log(req.file); // Access the uploaded file via req.file
+    // console.log("user", req.session?.user);
 
     const { description, pnr } = req.body;
     const phone = req.session?.user.phone;
@@ -156,7 +156,7 @@ export const getComplaintById = async (req: Request, res: Response) => {
     });
   }
   catch (err: any) {
-    console.log(err);
+    console.error(err);
 
     res.json({
       success: false,
@@ -170,7 +170,7 @@ export async function getComplaintBYId(req: Request, res: Response) {
   // console.log("id is", id);
 
   if (!id) {
-    console.log('No complaint ID received');
+    console.error('No complaint ID received');
     return res.status(400).send({
       success: false,
       message: "No complaint ID provided",

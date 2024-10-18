@@ -6,7 +6,7 @@ export const getAllComplaints = async(req: Request,res: Response)=>{
         
         const complaints = await Complain.find();
         if(complaints){
-            console.log("the list of all the complaints is ",complaints);
+            // console.log("the list of all the complaints is ",complaints);
             res.status(200).send({
                 success:true,
                 data:complaints,

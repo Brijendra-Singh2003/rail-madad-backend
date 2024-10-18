@@ -5,7 +5,7 @@ const ComplaintSchema = new Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true,
+    // required: true,
   },
   phone: {
     type: String,
@@ -21,16 +21,16 @@ const ComplaintSchema = new Schema({
   },
   category: {
     type: String,
-    required: true,
+    // required: true,
   },
   subcategory: {
     type: String,
-    required: true,
+    // required: true,
   },
   severity: {
     type: String,
     enum: ["low", "medium", "high"],
-    required: true,
+    // required: true,
   },
   conversations: {
     type: [{
@@ -48,7 +48,7 @@ const ComplaintSchema = new Schema({
   status: {
     type: String,
     default: "pending",
-    enum: ["pending", "registered", "resolved", "rejected", "in-progress"],  // aur jo v ho skta h.
+    enum: ["pending", "registered", "resolved","solved", "rejected", "in-progress"],  // aur jo v ho skta h.
   },
   pnr: {
     type: String,

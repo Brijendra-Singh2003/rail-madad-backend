@@ -54,7 +54,7 @@ export const getUserById = async(req:Request,res:Response)=>{
       res.status(400).send({
         success: false,
         message: 'Phone number is required',
-      });
+      }); 
     } else {
       try {
         console.log("Phone is", phone);

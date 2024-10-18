@@ -145,10 +145,10 @@ export async function getMyComplaints(req: Request, res: Response) {
 export const getComplaintById = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
-    console.log("get complaints by id", { id });
+    // console.log("get complaints by id", { id });
 
     const complaint = await Complain.findById(id);
-    console.log({ complaint });
+    // console.log({ complaint });
 
     res.json({
       success: true,
@@ -167,7 +167,7 @@ export const getComplaintById = async (req: Request, res: Response) => {
 
 export async function getComplaintBYId(req: Request, res: Response) {
   const { id } = req.params; // Extract the id from req.params
-  console.log("id is", id);
+  // console.log("id is", id);
 
   if (!id) {
     console.log('No complaint ID received');
@@ -179,7 +179,7 @@ export async function getComplaintBYId(req: Request, res: Response) {
 
   try {
     const complaint = await Complain.findById(id); // Pass only the id to findById
-    console.log("complaint is", complaint);
+    // console.log("complaint is", complaint);
 
     if (complaint) {
       return res.status(200).send({
@@ -192,7 +192,35 @@ export async function getComplaintBYId(req: Request, res: Response) {
         message: "Complaint not found",
       });
     }
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Error fetching complaint:", error);
+    return res.status(500).send({
+      success: false,
+      message: "Error fetching complaint",
+    });
+  }
+}
+
+export const changeStatus = async(req:Request,res:Response)=>{
+  try {
+    const {id,status} = req.body;
+    // fetch the complaint according to the is given 
+
+    console.log('id and status is ',id,'amd',status);
+
+    const complaint = await Complain.findById(id);
+    if(!complaint){
+      res.status(404).send("no complain found");
+    }else{
+      console.log("pehle ",complaint);
+    complaint.status = status;
+    const updatedComplaint = await complaint.save();
+    
+    console.log("Complaint after update:", updatedComplaint);
+    return res.status(200).json({ message: "Status updated successfully", complaint });
+    }
+
+  } catch (error: any) {
     console.error("Error fetching complaint:", error);
     return res.status(500).send({
       success: false,

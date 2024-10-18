@@ -1,5 +1,5 @@
 import express from "express";
-import { ComplaintController, getComplaintBYId, getComplaintCount } from "../controller/complain.controller";
+import { changeStatus, ComplaintController, getComplaintBYId, getComplaintCount } from "../controller/complain.controller";
 import multer from "multer";
 import { isAuthenticated } from "../middlewares/auth";
 import Complain from "../models/Complain";
@@ -13,6 +13,7 @@ const complaintRouter = express.Router();
 
 complaintRouter.get("/count", getComplaintCount);
 complaintRouter.get("/getAllComplaints",getAllComplaints);
+complaintRouter.post("/changeStatus", changeStatus);
 complaintRouter.post("/done", isAuthenticated, upload.single('image'), ComplaintController);
 complaintRouter.get('/:id',getComplaintBYId)
 // complaintRouter.get("/:id", async (req, res) => {

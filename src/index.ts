@@ -34,7 +34,7 @@ app.use(cookieSession({
   maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
 }));
 app.use(cookieParser());
-app.use(logger);
+// app.use(logger);
 
 // Routes
 app.use("/api/auth", AuthRouter);

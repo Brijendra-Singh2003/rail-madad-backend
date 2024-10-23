@@ -16,6 +16,6 @@ complaintRouter.get("/count", getComplaintCount);
 complaintRouter.get("/my", isAuthenticated, getMyComplaints);
 complaintRouter.post("/changeStatus", changeStatus);
 complaintRouter.post("/done", isAuthenticated, upload.single('image'), ComplaintController);
-complaintRouter.get("/:id", isAuthenticated, getComplaintById);
+complaintRouter.get("/:id", getComplaintById);
 
 export default complaintRouter;

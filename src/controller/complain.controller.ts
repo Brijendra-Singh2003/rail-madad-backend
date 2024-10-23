@@ -13,7 +13,7 @@ export const ComplaintController = async (req: Request, res: Response) => {
     // console.log(req.body);
     // console.log(req.file); // Access the uploaded file via req.file
     // console.log("user", req.session?.user);
-
+    
     const { description, pnr } = req.body;
     const phone = req.session?.user.phone;
 
@@ -214,6 +214,7 @@ export const changeStatus = async(req:Request,res:Response)=>{
     }else{
       console.log("pehle ",complaint);
     complaint.status = status;
+   
     const updatedComplaint = await complaint.save();
     
     console.log("Complaint after update:", updatedComplaint);

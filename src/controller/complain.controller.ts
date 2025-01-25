@@ -16,15 +16,15 @@ export const ComplaintController = async (req: Request, res: Response) => {
     
     const { description, pnr } = req.body;
     const phone = req.session?.user.phone;
-
+    console.log(req.body);
     if (!description || !pnr) {
       return res.status(400).send("All fields are required");
     }
 
+    console.log("fie ",req.file)
     if (!req.file) {
       return res.status(400).send("Image is required");
     }
-
     const file = req.file;
     const fileName = `complaints/${Date.now()}_${file.originalname}`;
     const fileUpload = bucket.file(fileName);
@@ -45,7 +45,7 @@ export const ComplaintController = async (req: Request, res: Response) => {
       });
       blobStream.end(file.buffer);
     });
-
+   console.log(image_url);
 
 
     // const formData = new FormData();
@@ -91,7 +91,7 @@ export const ComplaintController = async (req: Request, res: Response) => {
     });
     // }
 
-    //   console.log(await response.text());
+      console.log(await response.text());
     res.status(201).send({
       success: true,
       message: "Complaint registered successfully",
@@ -145,10 +145,10 @@ export async function getMyComplaints(req: Request, res: Response) {
 export const getComplaintById = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
-    // console.log("get complaints by id", { id });
+    console.log("get complaints by id", { id });
 
     const complaint = await Complain.findById(id);
-    // console.log({ complaint });
+    console.log({ complaint });
 
     res.json({
       success: true,

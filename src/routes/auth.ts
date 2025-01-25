@@ -1,6 +1,6 @@
 import express from "express";
 import { signin, sendOtp, signup } from "../controller/auth.controller";
-import { isAuthenticated } from "../middlewares/auth";
+import { isAuthenticated,isAdmin } from "../middlewares/auth";
 
 const AuthRouter = express.Router();
 
@@ -19,6 +19,12 @@ AuthRouter.post('/logout', (req, res) => {
 AuthRouter.get("/session", async (req, res) => {
   return res.json(req.session);
 });
+
+AuthRouter.get("/checkAccess",isAdmin,(req,res)=>{
+  return res.json(({success:true,message:"admin"}));
+});
+
+
 
 // @/api/auth/verify-otp
 // AuthRouter.post("/verify-otp", isAuthenticated, (req, res) => {

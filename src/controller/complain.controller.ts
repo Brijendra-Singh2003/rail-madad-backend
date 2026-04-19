@@ -1,57 +1,70 @@
 import "dotenv/config";
-import Complain from '../models/Complain';
+import Complain from "../models/Complain";
 import { Request, Response } from "express";
-import multer from "multer";
-import { bucket } from "../configurations/firebaseConfig";
-import { promise } from "zod";
+import FormData from "form-data";
+import axios from "axios";
+import fs from "fs";
+// below imports were used for Firebase storage; commented for local demo
+// import multer from "multer";
+// import { bucket } from "../configurations/firebaseConfig";
 
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
+// upload middleware is defined in routes; controller only needs to handle the saved file
 
 export const ComplaintController = async (req: Request, res: Response) => {
   try {
     // console.log(req.body);
     // console.log(req.file); // Access the uploaded file via req.file
     // console.log("user", req.session?.user);
-    
+
     const { description, pnr } = req.body;
     const phone = req.session?.user.phone;
-    console.log(req.body);
+
     if (!description || !pnr) {
       return res.status(400).send("All fields are required");
     }
 
-    console.log("fie ",req.file)
+    console.log("file ", req.file);
     if (!req.file) {
       return res.status(400).send("Image is required");
     }
-    const file = req.file;
+
+    // multer disk storage saved file to uploads directory
+    const file = req.file as Express.Multer.File;
+    // Construct public URL assuming express.static is serving the uploads folder
+    const host = req.get("host");
+    const protocol = req.protocol;
+    const image_url = `${protocol}://${host}/uploads/${file.filename}`;
+    console.log("local file saved at", file.path, "image_url", image_url);
+
+    // -- firebase upload logic, kept for reference (commented) --
+    /*
     const fileName = `complaints/${Date.now()}_${file.originalname}`;
     const fileUpload = bucket.file(fileName);
     const blobStream = fileUpload.createWriteStream({
-      metadata: {
-        contentType: file.mimetype,
-      },
+      metadata: { contentType: file.mimetype },
     });
-
-    blobStream.on('error', (err) => {
-      console.error('Error uploading file:', err);
-      return res.status(500).json({ message: "Something went wrong uploading the file" });
+    blobStream.on("error", (err) => {
+      console.error("Error uploading file:", err);
+      return res
+        .status(500)
+        .json({ message: "Something went wrong uploading the file" });
     });
-
     const image_url = await new Promise<string>((resolve, reject) => {
-      blobStream.on('finish', () => {
-        resolve(`https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(fileName)}?alt=media`);
+      blobStream.on("finish", () => {
+        resolve(
+          `https://firebasestorage.googleapis.com/v0/b/${
+            bucket.name
+          }/o/${encodeURIComponent(fileName)}?alt=media`,
+        );
       });
       blobStream.end(file.buffer);
     });
-   console.log(image_url);
-
+    console.log("url:", image_url);
+    */
 
     // const formData = new FormData();
 
     // formData.append("description", description);
-    // formData.append("file", new Blob([file.buffer], { type: file.mimetype }), file.originalname);
 
     // const response = await fetch("http://localhost:8000/analyze-grievance/", {
     //   method: "POST",
@@ -60,8 +73,23 @@ export const ComplaintController = async (req: Request, res: Response) => {
 
     // if(response.ok) {
     // const data = await response.json();
-    const data = AiResponse;
-
+    // const data = AiResponse;
+    const formData = new FormData();
+    formData.append("text", description);
+    // since we use disk storage, read the file as stream
+    formData.append(
+      "image",
+      fs.createReadStream(file.path) as any,
+      {
+        filename: file.originalname,
+        contentType: file.mimetype,
+      } as any,
+    );
+    const response = await axios.post(process.env.AI_SERVER_URL + "classify", formData, {
+      headers: formData.getHeaders(),
+    });
+    const data = response.data;
+    console.log("respnse from ai server :", response.data);
     const complaint = new Complain({
       user: req.session?.user._id,
       phone,
@@ -69,7 +97,7 @@ export const ComplaintController = async (req: Request, res: Response) => {
       image_url,
       description,
       category: data.category,
-      subcategory: data.subcategory,
+      subcategory: data.subCategory,
       severity: data.severity,
     });
 
@@ -79,7 +107,7 @@ export const ComplaintController = async (req: Request, res: Response) => {
     });
     complaint.conversations.push({
       role: "model",
-      message: data.preliminary_response,
+      message: data?.reason || "",
     });
 
     await complaint.save();
@@ -90,19 +118,11 @@ export const ComplaintController = async (req: Request, res: Response) => {
       complaintId: complaint.id,
     });
     // }
-
-      console.log(await response.text());
-    res.status(201).send({
-      success: true,
-      message: "Complaint registered successfully",
-      // complaint,
-    });
-
   } catch (error: any) {
     console.error("Error during registration:", error.message);
     res.status(500).send({
       success: false,
-      message: 'Error in registration',
+      message: "Error in registration",
       error: error.message,
     });
   }
@@ -112,7 +132,7 @@ export async function getComplaintCount(req: Request, res: Response) {
   try {
     const [count, pending] = await Promise.all([
       Complain.countDocuments({}),
-      Complain.countDocuments({ status: "pending" })
+      Complain.countDocuments({ status: "pending" }),
     ]);
 
     const data = {
@@ -129,15 +149,14 @@ export async function getComplaintCount(req: Request, res: Response) {
 
 export async function getMyComplaints(req: Request, res: Response) {
   const user = req.session?.user._id;
-  const complaints = await Complain.find({ user })
-    .select({
-      image_url: true,
-      description: true,
-      status: true,
-      pnr: true,
-      createdAt: true,
-      updatedAt: true,
-    });
+  const complaints = await Complain.find({ user }).select({
+    image_url: true,
+    description: true,
+    status: true,
+    pnr: true,
+    createdAt: true,
+    updatedAt: true,
+  });
 
   return res.json({ success: true, data: complaints });
 }
@@ -154,8 +173,7 @@ export const getComplaintById = async (req: Request, res: Response) => {
       success: true,
       data: complaint,
     });
-  }
-  catch (err: any) {
+  } catch (err: any) {
     console.error(err);
 
     res.json({
@@ -163,14 +181,14 @@ export const getComplaintById = async (req: Request, res: Response) => {
       message: err.message,
     });
   }
-}
+};
 
 export async function getComplaintBYId(req: Request, res: Response) {
   const { id } = req.params; // Extract the id from req.params
   // console.log("id is", id);
 
   if (!id) {
-    console.error('No complaint ID received');
+    console.error("No complaint ID received");
     return res.status(400).send({
       success: false,
       message: "No complaint ID provided",
@@ -201,26 +219,27 @@ export async function getComplaintBYId(req: Request, res: Response) {
   }
 }
 
-export const changeStatus = async(req:Request,res:Response)=>{
+export const changeStatus = async (req: Request, res: Response) => {
   try {
-    const {id,status} = req.body;
-    // fetch the complaint according to the is given 
+    const { id, status } = req.body;
+    // fetch the complaint according to the is given
 
-    console.log('id and status is ',id,'amd',status);
+    console.log("id and status is ", id, "amd", status);
 
     const complaint = await Complain.findById(id);
-    if(!complaint){
+    if (!complaint) {
       res.status(404).send("no complain found");
-    }else{
-      console.log("pehle ",complaint);
-    complaint.status = status;
-   
-    const updatedComplaint = await complaint.save();
-    
-    console.log("Complaint after update:", updatedComplaint);
-    return res.status(200).json({ message: "Status updated successfully", complaint });
-    }
+    } else {
+      console.log("pehle ", complaint);
+      complaint.status = status;
 
+      const updatedComplaint = await complaint.save();
+
+      console.log("Complaint after update:", updatedComplaint);
+      return res
+        .status(200)
+        .json({ message: "Status updated successfully", complaint });
+    }
   } catch (error: any) {
     console.error("Error fetching complaint:", error);
     return res.status(500).send({
@@ -228,61 +247,110 @@ export const changeStatus = async(req:Request,res:Response)=>{
       message: "Error fetching complaint",
     });
   }
-}
-
+};
 
 const AiResponse = {
-  category: 'coach-cleanliness',
-  subcategory: 'Others',
-  severity: 'high',
-  preliminary_response: 'Thank you for bringing this to our attention. We understand the importance of cleanliness and will send a cleaning crew immediately to address the issue.',
+  category: "coach-cleanliness",
+  subcategory: "Others",
+  severity: "high",
+  preliminary_response:
+    "Thank you for bringing this to our attention. We understand the importance of cleanliness and will send a cleaning crew immediately to address the issue.",
   metadata: {
     data: {
-      BlueMatrixColumn: '0.14307 0.06061 0.7141',
-      BlueTRC: '(Binary data 40 bytes, use -b option to extract)',
-      CMMFlags: 'Not Embedded, Independent',
-      ColorSpaceData: 'RGB ',
-      ConnectionSpaceIlluminant: '0.9642 1 0.82491',
-      DeviceAttributes: 'Reflective, Glossy, Positive, Color',
-      DeviceManufacturer: '',
-      DeviceModel: '',
-      Directory: '.',
+      BlueMatrixColumn: "0.14307 0.06061 0.7141",
+      BlueTRC: "(Binary data 40 bytes, use -b option to extract)",
+      CMMFlags: "Not Embedded, Independent",
+      ColorSpaceData: "RGB ",
+      ConnectionSpaceIlluminant: "0.9642 1 0.82491",
+      DeviceAttributes: "Reflective, Glossy, Positive, Color",
+      DeviceManufacturer: "",
+      DeviceModel: "",
+      Directory: ".",
       ExifToolVersion: 12.57,
-      FileAccessDate: '2024:08:31 15:08:14+00:00',
-      FileInodeChangeDate: '2024:08:31 15:08:14+00:00',
-      FileModifyDate: '2024:08:31 15:08:14+00:00',
-      FileName: '',
-      FilePermissions: '-rw-r--r--',
-      FileSize: '46 kB',
-      FileType: 'Extended WEBP',
-      FileTypeExtension: 'webp',
-      GreenMatrixColumn: '0.38515 0.71687 0.09708',
-      GreenTRC: '(Binary data 40 bytes, use -b option to extract)',
+      FileAccessDate: "2024:08:31 15:08:14+00:00",
+      FileInodeChangeDate: "2024:08:31 15:08:14+00:00",
+      FileModifyDate: "2024:08:31 15:08:14+00:00",
+      FileName: "",
+      FilePermissions: "-rw-r--r--",
+      FileSize: "46 kB",
+      FileType: "Extended WEBP",
+      FileTypeExtension: "webp",
+      GreenMatrixColumn: "0.38515 0.71687 0.09708",
+      GreenTRC: "(Binary data 40 bytes, use -b option to extract)",
       HorizontalScale: 0,
       ImageHeight: 320,
-      ImageSize: '320x320',
+      ImageSize: "320x320",
       ImageWidth: 320,
-      MIMEType: 'image/webp',
-      MediaWhitePoint: '0.9642 1 0.82491',
+      MIMEType: "image/webp",
+      MediaWhitePoint: "0.9642 1 0.82491",
       Megapixels: 0.102,
-      PrimaryPlatform: 'Unknown ()',
-      ProfileCMMType: '',
-      ProfileClass: 'Display Device Profile',
-      ProfileConnectionSpace: 'XYZ ',
-      ProfileCopyright: 'Google Inc. 2016',
-      ProfileCreator: '',
-      ProfileDateTime: '2016:01:01 00:00:00',
-      ProfileDescription: 'sRGB',
-      ProfileFileSignature: 'acsp',
+      PrimaryPlatform: "Unknown ()",
+      ProfileCMMType: "",
+      ProfileClass: "Display Device Profile",
+      ProfileConnectionSpace: "XYZ ",
+      ProfileCopyright: "Google Inc. 2016",
+      ProfileCreator: "",
+      ProfileDateTime: "2016:01:01 00:00:00",
+      ProfileDescription: "sRGB",
+      ProfileFileSignature: "acsp",
       ProfileID: 0,
-      ProfileVersion: '4.3.0',
-      RedMatrixColumn: '0.43607 0.22249 0.01392',
-      RedTRC: '(Binary data 40 bytes, use -b option to extract)',
-      RenderingIntent: 'Media-Relative Colorimetric',
-      SourceFile: '',
-      VP8Version: '0 (bicubic reconstruction, normal loop)',
+      ProfileVersion: "4.3.0",
+      RedMatrixColumn: "0.43607 0.22249 0.01392",
+      RedTRC: "(Binary data 40 bytes, use -b option to extract)",
+      RenderingIntent: "Media-Relative Colorimetric",
+      SourceFile: "",
+      VP8Version: "0 (bicyclic reconstruction, normal loop)",
       VerticalScale: 0,
-      WebP_Flags: 'ICC Profile'
+      WebP_Flags: "ICC Profile",
+    },
+  },
+};
+
+export const deleteComplaint = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Complaint ID is required",
+      });
     }
+
+    // Delete the complaint by ID
+    const deletedComplaint = await Complain.findByIdAndDelete(id);
+
+    if (!deletedComplaint) {
+      return res.status(404).json({
+        success: false,
+        message: "Complaint not found",
+      });
+    }
+
+    // Fetch remaining complaints
+    const remainingComplaints = await Complain.find().select({
+      image_url: true,
+      description: true,
+      status: true,
+      pnr: true,
+      category: true,
+      severity: true,
+      createdAt: true,
+      updatedAt: true,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Complaint deleted successfully",
+      deletedComplaint: deletedComplaint._id,
+      remainingComplaints,
+    });
+  } catch (error: any) {
+    console.error("Error deleting complaint:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error deleting complaint",
+      error: error.message,
+    });
   }
 };

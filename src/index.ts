@@ -1,6 +1,7 @@
 import "dotenv/config";
 import http from "http";
 import express from "express";
+import path from "path";
 import { WebSocketServer } from "ws";
 import cookieParser from "cookie-parser";
 import cookieSession from "cookie-session";
@@ -27,22 +28,25 @@ const corsOptions: CorsOptions = {
 // Middlewares
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(cookieSession({
-  name: 'session',
-  keys: [AUTH_SECRET],
+app.use(
+  cookieSession({
+    name: "session",
+    keys: [AUTH_SECRET],
 
-  // Cookie Options
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
-}));
+    // Cookie Options
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+  }),
+);
 app.use(cookieParser());
 app.use(logger);
+
+// serve local uploads folder so images are accessible via /uploads/<filename>
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Routes
 app.use("/api/auth", AuthRouter);
 app.use("/api/user", Userrouter);
 app.use("/api/complaints", Complainrouter);
-
-
 
 app.get("/", (_, res) => {
   res.json({ success: true, message: "hello from server" });

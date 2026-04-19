@@ -1,10 +1,33 @@
 import express from "express";
-import { changeStatus, ComplaintController, getComplaintCount, getMyComplaints, getComplaintById } from "../controller/complain.controller";
+import {
+  changeStatus,
+  ComplaintController,
+  getComplaintCount,
+  getMyComplaints,
+  getComplaintById,
+  deleteComplaint,
+} from "../controller/complain.controller";
 import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { isAuthenticated } from "../middlewares/auth";
 import { getAllComplaints } from "../controller/admin.controller";
 
-const storage = multer.memoryStorage();
+// ensure upload directory exists
+const uploadDir = path.join(__dirname, "../../uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (_req, file, cb) => {
+    const uniqueName = `${Date.now()}_${file.originalname}`;
+    cb(null, uniqueName);
+  },
+});
 const upload = multer({ storage });
 const complaintRouter = express.Router();
 
@@ -15,7 +38,13 @@ complaintRouter.get("/count", getComplaintCount);
 // User
 complaintRouter.get("/my", isAuthenticated, getMyComplaints);
 complaintRouter.post("/changeStatus", changeStatus);
-complaintRouter.post("/done", isAuthenticated, upload.single('image'), ComplaintController);
+complaintRouter.delete("/:id", deleteComplaint);
+complaintRouter.post(
+  "/done",
+  isAuthenticated,
+  upload.single("image"),
+  ComplaintController,
+);
 complaintRouter.get("/:id", getComplaintById);
 
 export default complaintRouter;

@@ -76,18 +76,24 @@ export const ComplaintController = async (req: Request, res: Response) => {
     // const data = AiResponse;
     const formData = new FormData();
     formData.append("text", description);
+    formData.append("image_url", ""); // currently sendinf null image_url until I fiXed the cloud deploymeny issue
     // since we use disk storage, read the file as stream
-    formData.append(
-      "image",
-      fs.createReadStream(file.path) as any,
+    // as we are using the url to send to ai server
+    // formData.append(
+    //   "image",
+    //   fs.createReadStream(file.path) as any,
+    //   {
+    //     filename: file.originalname,
+    //     contentType: file.mimetype,
+    //   } as any,
+    // );
+    const response = await axios.post(
+      process.env.AI_SERVER_URL + "classify",
+      formData,
       {
-        filename: file.originalname,
-        contentType: file.mimetype,
-      } as any,
+        headers: formData.getHeaders(),
+      },
     );
-    const response = await axios.post(process.env.AI_SERVER_URL + "classify", formData, {
-      headers: formData.getHeaders(),
-    });
     const data = response.data;
     console.log("respnse from ai server :", response.data);
     const complaint = new Complain({
@@ -115,7 +121,12 @@ export const ComplaintController = async (req: Request, res: Response) => {
     return res.status(201).send({
       success: true,
       message: "Complaint registered successfully",
-      complaintId: complaint.id,
+      data: {
+        complaintId: complaint._id,
+        category: data.category,
+        subcategory: data.subCategory,
+        severity: data.severity,
+      },
     });
     // }
   } catch (error: any) {
@@ -127,6 +138,38 @@ export const ComplaintController = async (req: Request, res: Response) => {
     });
   }
 };
+
+export async function humanResponse(req: Request, res: Response) {
+  try {
+    const data = req.body;
+    const agree = data.agree;
+    const complaintId = data.complaintId;
+
+    if (!agree) {
+      const deleteComplaint = await Complain.findByIdAndDelete(complaintId);
+      console.log("delete complaint", deleteComplaint);
+      if (deleteComplaint) {
+        return res.status(200).send({
+          success: true,
+          message: "Complaint deleted successfully",
+        });
+      }
+    } else {
+      console.log("User agreed with AI response, no deletion needed");
+      return res.status(200).send({
+        success: true,
+        message: "No need to delete complaint",
+      });
+    }
+  } catch (error) {
+    console.error("Error during human response:", error);
+    res.status(500).send({
+      success: false,
+      message: "Error in human response",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
 
 export async function getComplaintCount(req: Request, res: Response) {
   try {

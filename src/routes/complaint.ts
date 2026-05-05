@@ -6,6 +6,7 @@ import {
   getMyComplaints,
   getComplaintById,
   deleteComplaint,
+  humanResponse,
 } from "../controller/complain.controller";
 import multer from "multer";
 import path from "path";
@@ -34,6 +35,7 @@ const complaintRouter = express.Router();
 // Admin
 complaintRouter.get("/getAllComplaints", getAllComplaints);
 complaintRouter.get("/count", getComplaintCount);
+complaintRouter.post("/human-response", humanResponse);
 
 // User
 complaintRouter.get("/my", isAuthenticated, getMyComplaints);

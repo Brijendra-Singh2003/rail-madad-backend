@@ -16,9 +16,9 @@ export const ComplaintController = async (req: Request, res: Response) => {
     // console.log(req.file); // Access the uploaded file via req.file
     // console.log("user", req.session?.user);
 
-    const { description, pnr } = req.body;
+    const { description, pnr, llm_tried } = req.body;
     const phone = req.session?.user.phone;
-
+    console.log("llm_tried value is ", llm_tried, typeof llm_tried);
     if (!description || !pnr) {
       return res.status(400).send("All fields are required");
     }
@@ -87,16 +87,31 @@ export const ComplaintController = async (req: Request, res: Response) => {
     //     contentType: file.mimetype,
     //   } as any,
     // );
-    const response = await axios.post(
-      process.env.AI_SERVER_URL + "classify",
-      formData,
-      {
-        headers: formData.getHeaders(),
-      },
-    );
+    let response;
+    if (llm_tried == "true") {
+      console.log("Calling ai server with llm");
+      response = await axios.post(
+        process.env.AI_SERVER_URL + "classify_with_llm",
+        formData,
+        {
+          headers: formData.getHeaders(),
+        },
+      );
+    } else {
+      console.log("Calling ai server without llm");
+      response = await axios.post(
+        process.env.AI_SERVER_URL + "classify",
+        formData,
+        {
+          headers: formData.getHeaders(),
+        },
+      );
+    }
     const data = response.data;
     console.log("respnse from ai server :", response.data);
-    const complaint = new Complain({
+
+    // Do not save complaint here; return data for user confirmation
+    const complaintData = {
       user: req.session?.user._id,
       phone,
       pnr,
@@ -105,27 +120,19 @@ export const ComplaintController = async (req: Request, res: Response) => {
       category: data.category,
       subcategory: data.subCategory,
       severity: data.severity,
-    });
+    };
 
-    complaint.conversations.push({
-      role: "user",
-      message: description,
-    });
-    complaint.conversations.push({
-      role: "model",
-      message: data?.reason || "",
-    });
-
-    await complaint.save();
-
-    return res.status(201).send({
+    return res.status(200).send({
       success: true,
-      message: "Complaint registered successfully",
+      message: "Classification completed, awaiting user confirmation",
       data: {
-        complaintId: complaint._id,
         category: data.category,
         subcategory: data.subCategory,
         severity: data.severity,
+        image_url,
+        description,
+        pnr,
+        phone,
       },
     });
     // }
@@ -141,24 +148,41 @@ export const ComplaintController = async (req: Request, res: Response) => {
 
 export async function humanResponse(req: Request, res: Response) {
   try {
-    const data = req.body;
-    const agree = data.agree;
-    const complaintId = data.complaintId;
+    const { agree, complaintData } = req.body;
+    console.log("agree:", agree, "complaintData:", complaintData);
 
-    if (!agree) {
-      const deleteComplaint = await Complain.findByIdAndDelete(complaintId);
-      console.log("delete complaint", deleteComplaint);
-      if (deleteComplaint) {
-        return res.status(200).send({
-          success: true,
-          message: "Complaint deleted successfully",
-        });
-      }
+    if (!complaintData) {
+      return res.status(400).send({
+        success: false,
+        message: "Complaint data is required",
+      });
+    }
+
+    if (agree) {
+      // Save the complaint
+      console.log("Complaints Data is ", complaintData);
+      const complaintDataWithUser = {
+        ...complaintData,
+        user: req.session?.user._id,
+      };
+      const complaint = new Complain(complaintDataWithUser);
+      await complaint.save();
+
+      return res.status(201).send({
+        success: true,
+        message: "Complaint registered successfully",
+        data: {
+          complaintId: complaint._id,
+          category: complaint.category,
+          subcategory: complaint.subcategory,
+          severity: complaint.severity,
+        },
+      });
     } else {
-      console.log("User agreed with AI response, no deletion needed");
+      // User disagreed, do not save
       return res.status(200).send({
         success: true,
-        message: "No need to delete complaint",
+        message: "Complaint not saved as per user choice",
       });
     }
   } catch (error) {

@@ -18,7 +18,7 @@ const ComplaintSchema = new Schema(
     },
     image_url: {
       type: String,
-      required: true,
+      // required: true,
     },
     category: {
       type: String,

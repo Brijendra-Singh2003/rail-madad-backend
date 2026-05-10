@@ -35,7 +35,7 @@ const complaintRouter = express.Router();
 // Admin
 complaintRouter.get("/getAllComplaints", getAllComplaints);
 complaintRouter.get("/count", getComplaintCount);
-complaintRouter.post("/human-response", humanResponse);
+complaintRouter.post("/human-response", isAuthenticated, humanResponse);
 
 // User
 complaintRouter.get("/my", isAuthenticated, getMyComplaints);

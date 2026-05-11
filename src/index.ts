@@ -41,7 +41,7 @@ app.use(cookieParser());
 app.use(logger);
 
 // serve local uploads folder so images are accessible via /uploads/<filename>
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+// app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Routes
 app.use("/api/auth", AuthRouter);

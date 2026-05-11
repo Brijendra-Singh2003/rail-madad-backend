@@ -1,6 +1,7 @@
 import "dotenv/config";
 import Complain from "../models/Complain";
 import { Request, Response } from "express";
+import { v2 as cloudinary } from "cloudinary";
 import FormData from "form-data";
 import axios from "axios";
 import fs from "fs";
@@ -31,9 +32,9 @@ export const ComplaintController = async (req: Request, res: Response) => {
     // multer disk storage saved file to uploads directory
     const file = req.file as Express.Multer.File;
     // Construct public URL assuming express.static is serving the uploads folder
-    const host = req.get("host");
-    const protocol = req.protocol;
-    const image_url = `${protocol}://${host}/uploads/${file.filename}`;
+    // const host = req.get("host");
+    // const protocol = req.protocol;
+    const image_url = file.path;
     console.log("local file saved at", file.path, "image_url", image_url);
 
     // -- firebase upload logic, kept for reference (commented) --
@@ -384,6 +385,23 @@ export const deleteComplaint = async (req: Request, res: Response) => {
       });
     }
 
+    //Find complaint by ID to get the image URL for deletion from Cloudinary
+    const complaint = await Complain.findById(id);
+    if (!complaint) {
+      return res.status(404).json({
+        success: false,
+        message: "Complaint not found",
+      });
+    }
+
+    // Delete image from Cloudinary
+    if (complaint.image_url) {
+      const publicId = extractPublicId(complaint.image_url);
+
+      if (publicId) {
+        await cloudinary.uploader.destroy(publicId);
+      }
+    }
     // Delete the complaint by ID
     const deletedComplaint = await Complain.findByIdAndDelete(id);
 
@@ -419,5 +437,19 @@ export const deleteComplaint = async (req: Request, res: Response) => {
       message: "Error deleting complaint",
       error: error.message,
     });
+  }
+};
+
+const extractPublicId = (url: string): string | null => {
+  try {
+    const parts = url.split("/");
+    const filename = parts[parts.length - 1];
+
+    // remove extension
+    const publicId = filename.split(".")[0];
+
+    return `railMadad_complaints/${publicId}`;
+  } catch (err) {
+    return null;
   }
 };
